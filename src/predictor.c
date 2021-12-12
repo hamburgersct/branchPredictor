@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "predictor.h"
+#include "perceptron.h"
 
 //
 // TODO:Student Information
@@ -47,6 +48,7 @@ uint8_t *chooser;
 uint8_t *globalBHT;
 uint32_t globalHistory;
 uint8_t localOutcome, globalOutcome;
+
 
 //------------------------------------//
 //        Predictor Functions         //
@@ -150,7 +152,7 @@ void init_predictor()
 
         break;
     case CUSTOM:
-        // TODO
+        perceptron_init();
     default:
         break;
     }
@@ -177,7 +179,7 @@ make_prediction(uint32_t pc)
     case TOURNAMENT:
         return hybrid_prediction(pc);
     case CUSTOM:
-        return NOTTAKEN;
+        return perceptron_predict(pc);
     default:
         return NOTTAKEN;
         break;
@@ -210,6 +212,7 @@ void train_predictor(uint32_t pc, uint8_t outcome)
         tournament_train(pc, outcome);
         break;
     case CUSTOM:
+        perceptron_train(pc, outcome);
         break;
     default:
         break;
