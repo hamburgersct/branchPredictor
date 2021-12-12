@@ -40,12 +40,20 @@ int verbose;
 uint32_t ghistory;
 uint8_t *gshareBHT;
 
+// data structures for tournament predictor
+uint32_t *localPHT;
+uint8_t *localBHT;
+uint8_t *chooser;
+uint8_t *globalBHT;
+uint32_t globalHistory;
+uint8_t localOutcome, globalOutcome;
+
 //------------------------------------//
 //        Predictor Functions         //
 //------------------------------------//
 
 // Shifting time states
-void shift_timeStates(uint8_t *state, uint8_t outcome)
+void shift_states(uint8_t *state, uint8_t outcome)
 {
     if (outcome == TAKEN) {
         if (*state != ST)
@@ -63,6 +71,54 @@ uint8_t gshare_prediction(uint32_t pc) {
     return (g_pred == SN || g_pred == WN) ? NOTTAKEN : TAKEN;
 }
 
+// local predictor
+void local_prediction(uint32_t pc) {
+    uint32_t pattern = pc & ((1 << pcIndexBits) - 1);
+    uint32_t localBHTIndex = localPHT[pattern];
+    uint8_t prediction = localBHT[localBHTIndex];
+
+    localOutcome = (prediction == WT || prediction == ST) ? TAKEN : NOTTAKEN;
+}
+
+// global predictor
+void global_prediction(uint32_t pc) {
+    uint32_t globalBHTIndex = (globalHistory) & ((1 << ghistoryBits) - 1);
+    uint8_t prediction = globalBHT[globalBHTIndex];
+
+    globalOutcome = (prediction == WT || prediction == ST) ? TAKEN : NOTTAKEN;
+}
+
+// tournament prediction
+uint8_t hybrid_prediction(uint32_t pc) {
+    uint32_t globalBHTIndex = globalHistory & ((1 << ghistoryBits) - 1);
+    uint32_t predictor = chooser[globalBHTIndex];
+    local_prediction(pc);
+    global_prediction(pc);
+
+    return (predictor == WT || predictor == ST) ? localOutcome : globalOutcome;
+}
+
+//
+void tournament_train(uint32_t pc, uint8_t outcome) {
+    if (localOutcome != globalOutcome) {
+        shift_states(&chooser[globalHistory], (localOutcome == outcome) ? TAKEN : NOTTAKEN);
+    }
+
+    uint32_t localPHTIndex = pc & ((1 << pcIndexBits) - 1);
+    uint32_t localBHTIndex = localPHT[localPHTIndex];
+
+    // update PHT states
+    shift_states(&localBHT[localBHTIndex], outcome);
+    localPHT[localPHTIndex] <<= 1;
+    localPHT[localPHTIndex] &= ((1 << lhistoryBits) - 1);
+    localPHT[localPHTIndex] |= outcome;
+    // update global history states
+    shift_states(&globalBHT[globalHistory], outcome);
+    globalHistory <<= 1;
+    globalHistory &= ((1 << ghistoryBits) - 1);
+    globalHistory |= outcome;
+}
+
 // Initialize the predictor
 //
 void init_predictor()
@@ -74,13 +130,24 @@ void init_predictor()
     {
     case STATIC:
         return;
-        break;
     case GSHARE:
         ghistory = 0;
         gshareBHT = malloc((1 << ghistoryBits) * sizeof(uint8_t));
         memset(gshareBHT, WN, (1 << ghistoryBits) * sizeof(uint8_t));
         break;
     case TOURNAMENT:
+        // initialize local predictor
+        localPHT = malloc((1 << pcIndexBits) * sizeof(uint32_t));
+        localBHT = malloc((1 << lhistoryBits) * sizeof(uint8_t));
+        chooser = malloc((1 << ghistoryBits) * sizeof(uint8_t));
+        memset(localPHT, 0, (1 << pcIndexBits) * sizeof(uint32_t));
+        memset(localBHT, WN, (1 << lhistoryBits) * sizeof(uint8_t));
+        memset(chooser, WN, (1 << ghistoryBits) * sizeof(uint8_t));
+        // initialize glocal predictor
+        globalHistory = 0;
+        globalBHT = malloc((1 << ghistoryBits) * sizeof(uint8_t));
+        memset(globalBHT, WN, (1 << ghistoryBits) * sizeof(uint8_t));
+
         break;
     case CUSTOM:
         // TODO
@@ -107,10 +174,8 @@ make_prediction(uint32_t pc)
         return TAKEN;
     case GSHARE:
         return gshare_prediction(pc);
-        break;
     case TOURNAMENT:
-        return NOTTAKEN;
-        break;
+        return hybrid_prediction(pc);
     case CUSTOM:
         return NOTTAKEN;
     default:
@@ -137,11 +202,12 @@ void train_predictor(uint32_t pc, uint8_t outcome)
         break;
     case GSHARE:
         // first, shift the state
-        shift_timeStates(&gshareBHT[(ghistory ^ pc) & ((1 << ghistoryBits) - 1)], outcome);
+        shift_states(&gshareBHT[(ghistory ^ pc) & ((1 << ghistoryBits) - 1)], outcome);
         ghistory = ghistory << 1;
         ghistory = ghistory | outcome;
         break;
     case TOURNAMENT:
+        tournament_train(pc, outcome);
         break;
     case CUSTOM:
         break;
