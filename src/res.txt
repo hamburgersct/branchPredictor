@@ -1,0 +1,72 @@
+int_1:
+Branches:           3771697
+Incorrect:           521958
+Misprediction Rate:  13.839
+Branches:           3771697
+Incorrect:           476073
+Misprediction Rate:  12.622
+percep: PC_size: 350	height: 34	satuate_len: 8
+Branches:           3771697
+Incorrect:           288858
+Misprediction Rate:   7.659
+======
+int_2:
+Branches:           3755315
+Incorrect:            15776
+Misprediction Rate:   0.420
+Branches:           3755315
+Incorrect:            15980
+Misprediction Rate:   0.426
+percep: PC_size: 350	height: 34	satuate_len: 8
+Branches:           3755315
+Incorrect:            10973
+Misprediction Rate:   0.292
+======
+fp_1:
+Branches:           1546797
+Incorrect:            12765
+Misprediction Rate:   0.825
+Branches:           1546797
+Incorrect:            15329
+Misprediction Rate:   0.991
+percep: PC_size: 350	height: 34	satuate_len: 8
+Branches:           1546797
+Incorrect:            12748
+Misprediction Rate:   0.824
+======
+fp_2:
+Branches:           2422049
+Incorrect:            40641
+Misprediction Rate:   1.678
+Branches:           2422049
+Incorrect:            78619
+Misprediction Rate:   3.246
+percep: PC_size: 350	height: 34	satuate_len: 8
+Branches:           2422049
+Incorrect:            23339
+Misprediction Rate:   0.964
+======
+mm_1:
+Branches:           3014850
+Incorrect:           201871
+Misprediction Rate:   6.696
+Branches:           3014850
+Incorrect:            77802
+Misprediction Rate:   2.581
+percep: PC_size: 350	height: 34	satuate_len: 8
+Branches:           3014850
+Incorrect:            53749
+Misprediction Rate:   1.783
+======
+mm_2:
+Branches:           2563897
+Incorrect:           259929
+Misprediction Rate:  10.138
+Branches:           2563897
+Incorrect:           217501
+Misprediction Rate:   8.483
+percep: PC_size: 350	height: 34	satuate_len: 8
+Branches:           2563897
+Incorrect:           168197
+Misprediction Rate:   6.560
+======
